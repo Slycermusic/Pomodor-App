@@ -7,7 +7,6 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.List;
 import javax.swing.Timer;
 
 public class Main extends JFrame{
@@ -61,12 +60,21 @@ public class Main extends JFrame{
         if (initialized)
             return;
         initialized = true;
+
+        ImageIcon icon = new ImageIcon("src/main/resources/images/pomodorapp_logo.png");
+        this.setIconImage(icon.getImage());
+
         this.setSize(1080, 720);
         Dimension windowSize = this.getSize();
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         this.setLocation(screenSize.width/2 - windowSize.width/2, screenSize.height/2 - windowSize.height/2);
         Container pane = this.getContentPane();
         pane.setLayout(new GridBagLayout());
+
+        JPanel TaskPanel = new JPanel();
+        TaskPanel.setBounds(780,0,300,200);
+        TaskPanel.setBackground(Color.decode("#3d4042"));
+        this.add(TaskPanel);
 
         //Créer le boutton Commencer
         Commencer = new JButton("Commencer");
@@ -218,6 +226,5 @@ public class Main extends JFrame{
 
     public static void main(String[] args) {
         new Main().setVisible(true);
-
     }
 }
