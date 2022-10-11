@@ -1,26 +1,16 @@
 package org.example;
 
-import dorkbox.notify.Notify;
-import dorkbox.notify.Pos;
-
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.image.ImageObserver;
-import java.awt.image.ImageProducer;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.text.Position;
-import java.applet.*;
 import java.io.File;
 
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.text.DecimalFormat;
 import javax.swing.Timer;
+
 
 public class Main extends JFrame {
     private boolean initialized = false;
@@ -33,14 +23,27 @@ public class Main extends JFrame {
     DecimalFormat dFormat = new DecimalFormat("00");
     Font font = new Font("Arial", Font.PLAIN, 70);
 
+    static Main window;
+
     boolean isWork = true;
 
     protected JButton Commencer, Arreter, Ajouter;
     public void initialize() {
         initializeGui();
         initializeEvents();
-        this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-    }
+        this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent we)
+            {
+                String ObjButtons[] = {"Oui","Non"};
+                int PromptResult = JOptionPane.showOptionDialog(null,"Attention, fermer l'application n'enregistrera pas le chronomètre. Voulez vous toujours fermer l'application ?","Pomorod'App",JOptionPane.DEFAULT_OPTION,JOptionPane.WARNING_MESSAGE,null,ObjButtons,ObjButtons[1]);
+                if(PromptResult==JOptionPane.YES_OPTION)
+                {
+                    System.exit(0);
+                }
+            }
+        });    }
 
     public void initializeGui() {
         if (initialized)
@@ -110,6 +113,19 @@ public class Main extends JFrame {
                  }
                 if(minute == 2 & second == 0) {
                     Arreter.setEnabled(true);
+
+                    Thread newThread = new Thread(() -> {
+                        try {
+                            playSound();
+                            Thread.sleep(200);
+                            displayNotif();
+                        } catch (InterruptedException | AWTException f) {
+                            throw new RuntimeException(f);
+                        }
+                    });
+                    newThread.start();
+
+
                 }
             }
         });
@@ -120,6 +136,33 @@ public class Main extends JFrame {
         second = 10;
         counterLabel.setText("05:00");
         isWork = false;
+    }
+
+    public void displayNotif() throws AWTException {
+        if (SystemTray.isSupported()) {
+            SystemTray tray = SystemTray.getSystemTray();
+
+            //If the icon is a file
+            Image image = Toolkit.getDefaultToolkit().createImage("icon.png");
+            //Alternative (if the icon is on the classpath):
+            //Image image = Toolkit.getDefaultToolkit().createImage(getClass().getResource("icon.png"));
+            TrayIcon trayIcon = new TrayIcon(image, "Tray Demo");
+            //Let the system resize the image if needed
+            trayIcon.setImageAutoSize(true);
+            //Set tooltip text for the tray icon
+            trayIcon.setToolTip("System tray icon demo");
+            tray.add(trayIcon);
+
+            trayIcon.displayMessage("Pomodor'App", "Deux minutes restantes, Clickez pour ajouter deux minutes", TrayIcon.MessageType.INFO);
+            trayIcon.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    minute += 2;
+                }
+            });
+        } else {
+            System.err.println("System tray not supported!");
+        }
     }
     public void resetTimer() {
         minute = 25;
@@ -146,6 +189,7 @@ public class Main extends JFrame {
             }
             if (e.getActionCommand().equals("Arrêter")) {
                 pauseTimer();
+                Arreter.setEnabled(false);
             }
         }
     }
@@ -162,9 +206,8 @@ public class Main extends JFrame {
     }
 
     public static void playSound() throws InterruptedException {
-        Thread.sleep(200);
         try {
-            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File("C:\\Users\\maxen\\IdeaProjects\\Pomodor-App\\src\\main\\resources\\audio\\Notif.wav").getAbsoluteFile());
+            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File("src\\main\\resources\\audio\\Notif.wav").getAbsoluteFile());
             Clip clip = AudioSystem.getClip();
             clip.open(audioInputStream);
             clip.start();
@@ -174,25 +217,7 @@ public class Main extends JFrame {
         }
     }
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException, AWTException {
         new Main().setVisible(true);
-
-        Thread newThread = new Thread(() -> {
-            try {
-                playSound();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        });
-        newThread.start();
-
-        Notify.create()
-                .title("POMODOR'APP")
-                .text("Votre temps est presque écoulé, il ne vous reste que 2 minutes !")
-                .hideAfter(10000)
-                .position(Pos.CENTER)
-                .show();
-
-
     }
 }
