@@ -102,10 +102,10 @@ public class Main extends JFrame {
                 if(minute==0 && second==0) {
                     if (isWork) {
                         pauseTimer();
-                        isWork = false;
+
                     } else {
                         resetTimer();
-                        isWork = true;
+
                     }
                  }
                 if(minute == 2 & second == 0) {
@@ -119,13 +119,16 @@ public class Main extends JFrame {
         minute = 0;
         second = 10;
         counterLabel.setText("05:00");
-        timer.stop();
+        isWork = false;
     }
     public void resetTimer() {
         minute = 25;
         second = 0;
         counterLabel.setText("25:00");
         Commencer.setEnabled(true);
+        Arreter.setEnabled(false);
+        timer.stop();
+        isWork = true;
     }
 
     private void initializeEvents() {
