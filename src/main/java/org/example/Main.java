@@ -2,15 +2,21 @@ package org.example;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.swing.*;
+import java.io.File;
+
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.List;
 import javax.swing.Timer;
 
-public class Main extends JFrame{
 
+public class Main extends JFrame {
     private boolean initialized = false;
     private Actions actions = new Actions();
 
@@ -29,32 +35,23 @@ public class Main extends JFrame{
     Font Trash = new Font("Serif", Font.PLAIN, 40);
     boolean isWork = true;
 
-    protected JButton Commencer, Arreter, Ajouter, ajouterTask, retirerTask;
+    protected JButton Commencer, Arreter, Ajouter, ajouterTask, retirerTask, ajoutTemps;
     public void initialize() {
         initializeGui();
         initializeEvents();
-        this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-    }
-
-    public void RegisterTask() {
-        task = taskList.getText();
-        System.out.println(task);
-        listTask.add(task);
-        System.out.print(listTask);
-
-        listcheckBox.add(new JCheckBox(listTask.get(listTask.size() - 1)));
-        currentCheckbox = listcheckBox.get(listcheckBox.size() - 1);
-        this.add(currentCheckbox);
-        currentCheckbox.setBounds(100, y,200,20);
-        currentCheckbox.setBackground(Color.black);
-        currentCheckbox.setOpaque(false);
-        taskList.setText("");
-        y += 20;
-    }
-
-    public void RemoveTask() {
-        this.remove(1);
-    }
+        this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent we)
+            {
+                String ObjButtons[] = {"Oui","Non"};
+                int PromptResult = JOptionPane.showOptionDialog(null,"Attention, fermer l'application n'enregistrera pas le chronomètre. Voulez vous toujours fermer l'application ?","Pomorod'App",JOptionPane.DEFAULT_OPTION,JOptionPane.WARNING_MESSAGE,null,ObjButtons,ObjButtons[1]);
+                if(PromptResult==JOptionPane.YES_OPTION)
+                {
+                    System.exit(0);
+                }
+            }
+        });    }
 
     public void initializeGui() {
         if (initialized)
@@ -78,39 +75,48 @@ public class Main extends JFrame{
 
         //Créer le boutton Commencer
         Commencer = new JButton("Commencer");
-        Commencer.setBounds(100,100,200,40);
+        Commencer.setBounds(175,350,200,40);
         Commencer.addActionListener(actions);
         this.add(Commencer);
 
-        //Créer le boutton Commencer
+        //Créer le boutton Arreter
         Arreter = new JButton("Arrêter");
-        Arreter.setBounds(100,180,200,40);
+        Arreter.setBounds(300,400,200,40);
         Arreter.addActionListener(actions);
         Arreter.setEnabled(false);
         this.add(Arreter);
         this.setLayout(null);
 
+        //Créer le boutton Ajout de deux minutes
+        ajoutTemps = new JButton("Ajouter deux minutes");
+        ajoutTemps.setBounds(50,400,200,40);
+        ajoutTemps.addActionListener(actions);
+        ajoutTemps.setEnabled(false);
+        this.add(ajoutTemps);
+        this.setLayout(null);
+
+
         //Créer le boutton d'ajout des tâches
         ajouterTask = new JButton("Ajouter Tâche");
-        ajouterTask.setBounds(150,280,200,40);
+        ajouterTask.setBounds(900,500,150,40);
         ajouterTask.addActionListener(actions);
         this.add(ajouterTask);
         this.setLayout(null);
 
         //Créer le boutton d'ajout des tâches
         retirerTask = new JButton("Retirer Tâche");
-        retirerTask.setBounds(260,280,200,40);
+        retirerTask.setBounds(900,650,150,40);
         retirerTask.addActionListener(actions);
         this.add(retirerTask);
         this.setLayout(null);
 
         taskList = new JTextField(128);
-        taskList.setBounds(100,200,200,40);
+        taskList.setBounds(600,500,200,40);
         taskList.setHorizontalAlignment(JLabel.CENTER);
         this.add(taskList);
 
         counterLabel = new JLabel("this is sample");
-        counterLabel.setBounds(300,230,200,100);
+        counterLabel.setBounds(175,200,200,100);
         counterLabel.setHorizontalAlignment(JLabel.CENTER);
         counterLabel.setFont(font);
         this.add(counterLabel);
@@ -141,17 +147,26 @@ public class Main extends JFrame{
                 if(minute==0 && second==0) {
                     if (isWork) {
                         pauseTimer();
-                        try {
-                            String[] commandcmd = {"cmd.exe", "/C", "Start", "src\\main\\resources\\commandworkblock.bat"};
-                            Process p =  Runtime.getRuntime().exec(commandcmd);
-                        } catch (IOException ex) {
-                        }
+
                     } else {
                         resetTimer();
                     }
                  }
                 if(minute == 2 & second == 0) {
                     Arreter.setEnabled(true);
+
+                    Thread newThread = new Thread(() -> {
+                        try {
+                            playSound();
+                            Thread.sleep(200);
+                            displayNotif();
+                        } catch (InterruptedException | AWTException f) {
+                            throw new RuntimeException(f);
+                        }
+                    });
+                    newThread.start();
+
+
                 }
             }
         });
@@ -162,6 +177,33 @@ public class Main extends JFrame{
         second = 10;
         counterLabel.setText("05:00");
         isWork = false;
+    }
+
+    public void displayNotif() throws AWTException {
+        if (SystemTray.isSupported()) {
+            SystemTray tray = SystemTray.getSystemTray();
+
+            //If the icon is a file
+            Image image = Toolkit.getDefaultToolkit().createImage("icon.png");
+            //Alternative (if the icon is on the classpath):
+            //Image image = Toolkit.getDefaultToolkit().createImage(getClass().getResource("icon.png"));
+            TrayIcon trayIcon = new TrayIcon(image, "Tray Demo");
+            //Let the system resize the image if needed
+            trayIcon.setImageAutoSize(true);
+            //Set tooltip text for the tray icon
+            trayIcon.setToolTip("System tray icon demo");
+            tray.add(trayIcon);
+
+            trayIcon.displayMessage("Pomodor'App", "Deux minutes restantes, Clickez pour ajouter deux minutes", TrayIcon.MessageType.INFO);
+            trayIcon.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    minute += 2;
+                }
+            });
+        } else {
+            System.err.println("System tray not supported!");
+        }
     }
     public void resetTimer() {
         minute = 25;
@@ -208,8 +250,32 @@ public class Main extends JFrame{
                 }
 
             }
+            if (e.getActionCommand().equals("Ajouter deux minutes")) {
+                    minute += 2;
+
+            }
 
         }
+    }
+
+    public void RegisterTask() {
+        task = taskList.getText();
+        System.out.println(task);
+        listTask.add(task);
+        System.out.print(listTask);
+
+        listcheckBox.add(new JCheckBox(listTask.get(listTask.size() - 1)));
+        currentCheckbox = listcheckBox.get(listcheckBox.size() - 1);
+        this.add(currentCheckbox);
+        currentCheckbox.setBounds(100, y,200,20);
+        currentCheckbox.setBackground(Color.black);
+        currentCheckbox.setOpaque(false);
+        taskList.setText("");
+        y += 20;
+    }
+
+    public void RemoveTask() {
+        this.remove(1);
     }
 
     public void dispose() {
@@ -223,8 +289,20 @@ public class Main extends JFrame{
         super.setVisible(b);
     }
 
+    public static void playSound() throws InterruptedException {
+        try {
+            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File("src\\main\\resources\\audio\\Notif.wav").getAbsoluteFile());
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioInputStream);
+            clip.start();
+        } catch(Exception ex) {
+            System.out.println("Error with playing sound.");
+            ex.printStackTrace();
+        }
+    }
 
     public static void main(String[] args) {
         new Main().setVisible(true);
+
     }
 }
