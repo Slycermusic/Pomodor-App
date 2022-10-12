@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import javax.swing.Timer;
 
 
@@ -34,8 +35,11 @@ public class Main extends JFrame {
     Font font = new Font("Serif", Font.PLAIN, 70);
     Font Trash = new Font("Serif", Font.PLAIN, 40);
     boolean isWork = true;
+    boolean addedTime = false;
+    int nbBoucles = 1;
 
-    protected JButton Commencer, Arreter, Ajouter, ajouterTask, retirerTask, ajoutTemps;
+    protected JButton Commencer, Arreter, Ajouter, ajouterTask, retirerTask, ajouterTemps;
+    protected JLabel messageErreur;
     public void initialize() {
         initializeGui();
         initializeEvents();
@@ -88,11 +92,11 @@ public class Main extends JFrame {
         this.setLayout(null);
 
         //Créer le boutton Ajout de deux minutes
-        ajoutTemps = new JButton("Ajouter deux minutes");
-        ajoutTemps.setBounds(50,400,200,40);
-        ajoutTemps.addActionListener(actions);
-        ajoutTemps.setEnabled(false);
-        this.add(ajoutTemps);
+        ajouterTemps = new JButton("Ajouter deux minutes");
+        ajouterTemps.setBounds(50,400,200,40);
+        ajouterTemps.addActionListener(actions);
+        ajouterTemps.setEnabled(false);
+        this.add(ajouterTemps);
         this.setLayout(null);
 
 
@@ -108,6 +112,13 @@ public class Main extends JFrame {
         retirerTask.setBounds(900,650,150,40);
         retirerTask.addActionListener(actions);
         this.add(retirerTask);
+        this.setLayout(null);
+
+        messageErreur = new JLabel("Cette tâche existe déjà.");
+        messageErreur.setBounds(715,450,150,40);
+        messageErreur.setVisible(false);
+        messageErreur.setForeground(Color.RED);
+        this.add(messageErreur);
         this.setLayout(null);
 
         taskList = new JTextField(128);
@@ -145,21 +156,26 @@ public class Main extends JFrame {
                     counterLabel.setText(ddMinute + ":" + ddSecond);
                 }
                 if(minute==0 && second==0) {
+                    addedTime = true;
                     if (isWork) {
                         pauseTimer();
 
                     } else {
                         resetTimer();
+
                     }
                  }
-                if(minute == 2 & second == 0) {
+                if(minute == 2 & second == 0 && isWork) {
                     Arreter.setEnabled(true);
+                    if(!addedTime){
+                        ajouterTemps.setEnabled(true);
+                    }
 
                     Thread newThread = new Thread(() -> {
                         try {
                             playSound();
                             Thread.sleep(200);
-                            displayNotif();
+                            displayNotif(addedTime ? "Deux minutes restantes" : "Deux minutes restantes, Clickez pour ajouter deux minutes");
                         } catch (InterruptedException | AWTException f) {
                             throw new RuntimeException(f);
                         }
@@ -173,32 +189,45 @@ public class Main extends JFrame {
     }
 
     public void pauseTimer() {
-        minute = 0;
-        second = 10;
-        counterLabel.setText("05:00");
+        if(nbBoucles % 4 == 0){
+            minute = 2;
+            second = 30;
+            counterLabel.setText("30:00");
+        }else{
+            minute = 2;
+            second = 10;
+            counterLabel.setText("05:00");
+        }
+        ajouterTemps.setEnabled(false);
+        Arreter.setEnabled(false);
         isWork = false;
+        addedTime = true;
     }
 
-    public void displayNotif() throws AWTException {
+    public void displayNotif(String texte) throws AWTException {
         if (SystemTray.isSupported()) {
             SystemTray tray = SystemTray.getSystemTray();
 
             //If the icon is a file
-            Image image = Toolkit.getDefaultToolkit().createImage("icon.png");
+            Image image = Toolkit.getDefaultToolkit().createImage("src\\main\\resources\\images\\pomodorapp_logo.png");
             //Alternative (if the icon is on the classpath):
             //Image image = Toolkit.getDefaultToolkit().createImage(getClass().getResource("icon.png"));
-            TrayIcon trayIcon = new TrayIcon(image, "Tray Demo");
+            TrayIcon trayIcon = new TrayIcon(image, "Pomodorapp logo");
             //Let the system resize the image if needed
             trayIcon.setImageAutoSize(true);
             //Set tooltip text for the tray icon
             trayIcon.setToolTip("System tray icon demo");
             tray.add(trayIcon);
 
-            trayIcon.displayMessage("Pomodor'App", "Deux minutes restantes, Clickez pour ajouter deux minutes", TrayIcon.MessageType.INFO);
+            trayIcon.displayMessage("Pomodor'App", texte, TrayIcon.MessageType.INFO);
             trayIcon.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    minute += 2;
+                    if(!addedTime) {
+                        minute += 2;
+                        ajouterTemps.setEnabled(false);
+                        addedTime = true;
+                    }
                 }
             });
         } else {
@@ -206,13 +235,25 @@ public class Main extends JFrame {
         }
     }
     public void resetTimer() {
-        minute = 25;
-        second = 0;
-        counterLabel.setText("25:00");
+        minute = 2;
+        second = 10;
+        counterLabel.setText("02:10");
         Commencer.setEnabled(true);
         Arreter.setEnabled(false);
         timer.stop();
         isWork = true;
+        addedTime = false;
+        Thread newThread = new Thread(() -> {
+            try {
+                playSound();
+                Thread.sleep(200);
+                displayNotif("Fin du Pomodoro n°" + nbBoucles + ". Vous pouvez relancer le suivant après avoir ajouté vos nouvelles tâches.");
+                nbBoucles++;
+            } catch (InterruptedException | AWTException f) {
+                throw new RuntimeException(f);
+            }
+        });
+        newThread.start();
     }
 
     private void initializeEvents() {
@@ -250,9 +291,10 @@ public class Main extends JFrame {
                 }
 
             }
-            if (e.getActionCommand().equals("Ajouter deux minutes")) {
+            if (e.getActionCommand().equals("Ajouter deux minutes") && !addedTime) {
                     minute += 2;
-
+                    ajouterTemps.setEnabled(false);
+                    addedTime = true;
             }
 
         }
@@ -260,18 +302,25 @@ public class Main extends JFrame {
 
     public void RegisterTask() {
         task = taskList.getText();
-        System.out.println(task);
-        listTask.add(task);
-        System.out.print(listTask);
+        if(!Objects.equals(task, "") && !listTask.contains(task)){
+            messageErreur.setVisible(false);
 
-        listcheckBox.add(new JCheckBox(listTask.get(listTask.size() - 1)));
-        currentCheckbox = listcheckBox.get(listcheckBox.size() - 1);
-        this.add(currentCheckbox);
-        currentCheckbox.setBounds(100, y,200,20);
-        currentCheckbox.setBackground(Color.black);
-        currentCheckbox.setOpaque(false);
+            System.out.println(task);
+            listTask.add(task);
+            System.out.print(listTask);
+
+            listcheckBox.add(new JCheckBox(listTask.get(listTask.size() - 1)));
+            currentCheckbox = listcheckBox.get(listcheckBox.size() - 1);
+            this.add(currentCheckbox);
+            currentCheckbox.setBounds(100, y,200,20);
+            currentCheckbox.setBackground(Color.black);
+            currentCheckbox.setOpaque(false);
+            y += 20;
+
+        }else{
+            messageErreur.setVisible(true);
+        }
         taskList.setText("");
-        y += 20;
     }
 
     public void RemoveTask() {
