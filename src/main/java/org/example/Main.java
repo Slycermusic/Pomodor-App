@@ -6,15 +6,13 @@ import java.awt.event.*;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
-import javax.swing.*;
 import java.io.File;
-
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.List;
 import javax.swing.Timer;
-
+import java.awt.Image;
+import java.awt.Toolkit;
 
 public class Main extends JFrame {
     private boolean initialized = false;
@@ -31,11 +29,13 @@ public class Main extends JFrame {
     int second, minute, y = 50;
     String ddSecond, ddMinute;
     DecimalFormat dFormat = new DecimalFormat("00");
-    Font font = new Font("Serif", Font.PLAIN, 70);
-    Font Trash = new Font("Serif", Font.PLAIN, 40);
+    Font Timer = new Font("Serif", Font.PLAIN, 175);
+    Font Trash = new Font("Serif", Font.PLAIN, 22);
     boolean isWork = true;
 
-    protected JButton Commencer, Arreter, Ajouter, ajouterTask, retirerTask, ajoutTemps;
+    JLayeredPane layeredPane = new JLayeredPane();
+    protected JButton Commencer, Arreter, ajouterTask, retirerTask, ajoutTemps;
+
     public void initialize() {
         initializeGui();
         initializeEvents();
@@ -58,72 +58,92 @@ public class Main extends JFrame {
             return;
         initialized = true;
 
-        ImageIcon icon = new ImageIcon("src/main/resources/images/pomodorapp_logo.png");
-        this.setIconImage(icon.getImage());
-
-        this.setSize(1080, 720);
+        this.setSize(1280, 720);
         Dimension windowSize = this.getSize();
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         this.setLocation(screenSize.width/2 - windowSize.width/2, screenSize.height/2 - windowSize.height/2);
         Container pane = this.getContentPane();
         pane.setLayout(new GridBagLayout());
+        setResizable(false);
 
-        JPanel TaskPanel = new JPanel();
-        TaskPanel.setBounds(780,0,300,200);
-        TaskPanel.setBackground(Color.decode("#3d4042"));
-        this.add(TaskPanel);
+        JPanel middlePanel = new JPanel(new GridBagLayout());
+        middlePanel.setSize(20,720);
+        middlePanel.setLocation(630, 0);
+        middlePanel.setBackground(Color.decode("#230804"));
+        this.add(middlePanel);
 
         //Créer le boutton Commencer
         Commencer = new JButton("Commencer");
-        Commencer.setBounds(175,350,200,40);
+        Commencer.setBounds(150,400,125,40);
         Commencer.addActionListener(actions);
         this.add(Commencer);
 
         //Créer le boutton Arreter
         Arreter = new JButton("Arrêter");
-        Arreter.setBounds(300,400,200,40);
+        Arreter.setBounds(350,400,125,40);
         Arreter.addActionListener(actions);
         Arreter.setEnabled(false);
         this.add(Arreter);
-        this.setLayout(null);
 
         //Créer le boutton Ajout de deux minutes
         ajoutTemps = new JButton("Ajouter deux minutes");
-        ajoutTemps.setBounds(50,400,200,40);
+        ajoutTemps.setBounds(230,470,160,40);
         ajoutTemps.addActionListener(actions);
         ajoutTemps.setEnabled(false);
         this.add(ajoutTemps);
-        this.setLayout(null);
 
 
         //Créer le boutton d'ajout des tâches
         ajouterTask = new JButton("Ajouter Tâche");
-        ajouterTask.setBounds(900,500,150,40);
+        ajouterTask.setBounds(1075,620,115,40);
         ajouterTask.addActionListener(actions);
         this.add(ajouterTask);
-        this.setLayout(null);
 
         //Créer le boutton d'ajout des tâches
-        retirerTask = new JButton("Retirer Tâche");
-        retirerTask.setBounds(900,650,150,40);
+        retirerTask = new JButton("\uD83D\uDDD1");
+        retirerTask.setBounds(1200,620,50,40);
+        retirerTask.setFont(Trash);
         retirerTask.addActionListener(actions);
         this.add(retirerTask);
-        this.setLayout(null);
 
-        taskList = new JTextField(128);
-        taskList.setBounds(600,500,200,40);
+
+        taskList = new JTextField(32);
+        taskList.setBounds(665,620,400,40);
         taskList.setHorizontalAlignment(JLabel.CENTER);
         this.add(taskList);
 
         counterLabel = new JLabel("this is sample");
-        counterLabel.setBounds(175,200,200,100);
+        counterLabel.setBounds(85,200,450,200);
         counterLabel.setHorizontalAlignment(JLabel.CENTER);
-        counterLabel.setFont(font);
+        counterLabel.setForeground(Color.WHITE);
+        counterLabel.setFont(Timer);
         this.add(counterLabel);
 
-        counterLabel.setText("2:10");
-        second = 10;
-        minute = 2;
+        counterLabel.setText("25:00");
+        second = 0;
+        minute = 25;
+
+        this.setLayout(null);
+
+        JPanel addtaskPanel = new JPanel(new GridBagLayout());
+        addtaskPanel.setSize(640,81);
+        addtaskPanel.setLocation(640, 600);
+        addtaskPanel.setBackground(Color.decode("#1C1920"));
+        this.add(addtaskPanel);
+
+        ImageIcon imgtask = new ImageIcon("C:\\Users\\Slycer\\Documents\\Pomodor'App\\untitled\\src\\main\\resources\\images\\TaskPanel.png");
+        JLabel backgroundtask;
+        backgroundtask = new JLabel("", imgtask, JLabel.CENTER);
+        backgroundtask.setBounds(320,-59,1280,720);
+        this.add(backgroundtask);
+
+        ImageIcon img = new ImageIcon("C:\\Users\\Slycer\\Documents\\Pomodor'App\\untitled\\src\\main\\resources\\images\\Background.png");
+        JLabel background;
+        background = new JLabel("", img, JLabel.CENTER);
+        background.setBounds(0,0,1280,720);
+        this.add(background);
+
+
 
     }
 
@@ -173,10 +193,20 @@ public class Main extends JFrame {
     }
 
     public void pauseTimer() {
-        minute = 0;
-        second = 10;
+        second = 0;
+        minute = 5;
         counterLabel.setText("05:00");
         isWork = false;
+    }
+
+    public void resetTimer() {
+        minute = 25;
+        second = 0;
+        counterLabel.setText("25:00");
+        Commencer.setEnabled(true);
+        Arreter.setEnabled(false);
+        timer.stop();
+        isWork = true;
     }
 
     public void displayNotif() throws AWTException {
@@ -204,15 +234,6 @@ public class Main extends JFrame {
         } else {
             System.err.println("System tray not supported!");
         }
-    }
-    public void resetTimer() {
-        minute = 25;
-        second = 0;
-        counterLabel.setText("25:00");
-        Commencer.setEnabled(true);
-        Arreter.setEnabled(false);
-        timer.stop();
-        isWork = true;
     }
 
     private void initializeEvents() {
@@ -267,15 +288,20 @@ public class Main extends JFrame {
         listcheckBox.add(new JCheckBox(listTask.get(listTask.size() - 1)));
         currentCheckbox = listcheckBox.get(listcheckBox.size() - 1);
         this.add(currentCheckbox);
-        currentCheckbox.setBounds(100, y,200,20);
+        currentCheckbox.setBounds(1000, y,200,20);
         currentCheckbox.setBackground(Color.black);
         currentCheckbox.setOpaque(false);
         taskList.setText("");
-        y += 20;
+        y += 50;
+
+        layeredPane.add(currentCheckbox, JLayeredPane.DRAG_LAYER);
     }
 
     public void RemoveTask() {
-        this.remove(1);
+        if(currentCheckbox.isSelected()) {
+            this.remove(currentCheckbox);
+        }
+
     }
 
     public void dispose() {
