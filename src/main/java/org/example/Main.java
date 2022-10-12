@@ -15,7 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import javax.swing.Timer;
-
+import java.awt.Image;
+import java.awt.Toolkit;
 
 public class Main extends JFrame {
     private boolean initialized = false;
@@ -32,14 +33,16 @@ public class Main extends JFrame {
     int second, minute, y = 50;
     String ddSecond, ddMinute;
     DecimalFormat dFormat = new DecimalFormat("00");
-    Font font = new Font("Serif", Font.PLAIN, 70);
-    Font Trash = new Font("Serif", Font.PLAIN, 40);
+    Font Timer = new Font("Serif", Font.PLAIN, 175);
+    Font Trash = new Font("Serif", Font.PLAIN, 22);
     boolean isWork = true;
     boolean addedTime = false;
     int nbBoucles = 1;
 
     protected JButton Commencer, Arreter, Ajouter, ajouterTask, retirerTask, ajouterTemps;
     protected JLabel messageErreur;
+    JLayeredPane layeredPane = new JLayeredPane();
+
     public void initialize() {
         initializeGui();
         initializeEvents();
@@ -62,79 +65,99 @@ public class Main extends JFrame {
             return;
         initialized = true;
 
-        ImageIcon icon = new ImageIcon("src/main/resources/images/pomodorapp_logo.png");
-        this.setIconImage(icon.getImage());
-
-        this.setSize(1080, 720);
+        this.setSize(1280, 720);
         Dimension windowSize = this.getSize();
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         this.setLocation(screenSize.width/2 - windowSize.width/2, screenSize.height/2 - windowSize.height/2);
         Container pane = this.getContentPane();
         pane.setLayout(new GridBagLayout());
+        setResizable(false);
 
-        JPanel TaskPanel = new JPanel();
-        TaskPanel.setBounds(780,0,300,200);
-        TaskPanel.setBackground(Color.decode("#3d4042"));
-        this.add(TaskPanel);
+        JPanel middlePanel = new JPanel(new GridBagLayout());
+        middlePanel.setSize(20,720);
+        middlePanel.setLocation(630, 0);
+        middlePanel.setBackground(Color.decode("#230804"));
+        this.add(middlePanel);
 
         //Créer le boutton Commencer
         Commencer = new JButton("Commencer");
-        Commencer.setBounds(175,350,200,40);
+        Commencer.setBounds(150,400,125,40);
         Commencer.addActionListener(actions);
         this.add(Commencer);
 
         //Créer le boutton Arreter
         Arreter = new JButton("Arrêter");
-        Arreter.setBounds(300,400,200,40);
+        Arreter.setBounds(350,400,125,40);
         Arreter.addActionListener(actions);
         Arreter.setEnabled(false);
         this.add(Arreter);
-        this.setLayout(null);
 
         //Créer le boutton Ajout de deux minutes
         ajouterTemps = new JButton("Ajouter deux minutes");
-        ajouterTemps.setBounds(50,400,200,40);
+        ajouterTemps.setBounds(230,470,160,40);
         ajouterTemps.addActionListener(actions);
         ajouterTemps.setEnabled(false);
         this.add(ajouterTemps);
-        this.setLayout(null);
 
 
         //Créer le boutton d'ajout des tâches
         ajouterTask = new JButton("Ajouter Tâche");
-        ajouterTask.setBounds(900,500,150,40);
+        ajouterTask.setBounds(1075,620,115,40);
         ajouterTask.addActionListener(actions);
         this.add(ajouterTask);
-        this.setLayout(null);
 
         //Créer le boutton d'ajout des tâches
-        retirerTask = new JButton("Retirer Tâche");
-        retirerTask.setBounds(900,650,150,40);
+        retirerTask = new JButton("\uD83D\uDDD1");
+        retirerTask.setBounds(1200,620,50,40);
+        retirerTask.setFont(Trash);
         retirerTask.addActionListener(actions);
         this.add(retirerTask);
-        this.setLayout(null);
 
+        //Créer le boutton d'ajout des tâches
         messageErreur = new JLabel("Cette tâche existe déjà.");
-        messageErreur.setBounds(715,450,150,40);
+        messageErreur.setBounds(690,590,150,40);
+        messageErreur.setForeground(Color.red);
         messageErreur.setVisible(false);
-        messageErreur.setForeground(Color.RED);
         this.add(messageErreur);
-        this.setLayout(null);
 
-        taskList = new JTextField(128);
-        taskList.setBounds(600,500,200,40);
+
+        taskList = new JTextField(32);
+        taskList.setBounds(665,620,400,40);
         taskList.setHorizontalAlignment(JLabel.CENTER);
         this.add(taskList);
 
         counterLabel = new JLabel("this is sample");
-        counterLabel.setBounds(175,200,200,100);
+        counterLabel.setBounds(85,200,450,200);
         counterLabel.setHorizontalAlignment(JLabel.CENTER);
-        counterLabel.setFont(font);
+        counterLabel.setForeground(Color.WHITE);
+        counterLabel.setFont(Timer);
         this.add(counterLabel);
 
-        counterLabel.setText("2:10");
+        counterLabel.setText("25:00");
         second = 10;
         minute = 2;
+
+        this.setLayout(null);
+
+        JPanel addtaskPanel = new JPanel(new GridBagLayout());
+        addtaskPanel.setSize(640,81);
+        addtaskPanel.setLocation(640, 600);
+        addtaskPanel.setBackground(Color.decode("#1C1920"));
+        this.add(addtaskPanel);
+
+/*        ImageIcon imgtask = new ImageIcon("src\\main\\resources\\images\\TaskPanel.png");
+        JLabel backgroundtask;
+        backgroundtask = new JLabel("", imgtask, JLabel.CENTER);
+        backgroundtask.setBounds(320,-59,1280,720);
+        this.add(backgroundtask);
+
+        ImageIcon img = new ImageIcon("src\\main\\resources\\images\\Background.png");
+        JLabel background;
+        background = new JLabel("", img, JLabel.CENTER);
+        background.setBounds(0,0,1280,720);
+        this.add(background);*/
+
+
 
     }
 
@@ -201,7 +224,6 @@ public class Main extends JFrame {
         ajouterTemps.setEnabled(false);
         Arreter.setEnabled(false);
         isWork = false;
-        addedTime = true;
     }
 
     public void displayNotif(String texte) throws AWTException {
@@ -312,10 +334,11 @@ public class Main extends JFrame {
             listcheckBox.add(new JCheckBox(listTask.get(listTask.size() - 1)));
             currentCheckbox = listcheckBox.get(listcheckBox.size() - 1);
             this.add(currentCheckbox);
-            currentCheckbox.setBounds(100, y,200,20);
+            currentCheckbox.setBounds(1000, y,200,20);
             currentCheckbox.setBackground(Color.black);
             currentCheckbox.setOpaque(false);
-            y += 20;
+            taskList.setText("");
+            y += 50;
 
         }else{
             messageErreur.setVisible(true);
@@ -324,7 +347,10 @@ public class Main extends JFrame {
     }
 
     public void RemoveTask() {
-        this.remove(1);
+        if(currentCheckbox.isSelected()) {
+            this.remove(currentCheckbox);
+        }
+
     }
 
     public void dispose() {
