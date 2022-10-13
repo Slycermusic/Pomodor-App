@@ -138,8 +138,8 @@ public class Main extends JFrame {
         this.add(counterLabel);
 
         counterLabel.setText("25:00");
-        second = 0;
-        minute = 25;
+        second = 10;
+        minute = 2;
 
         this.setLayout(null);
 
@@ -171,6 +171,7 @@ public class Main extends JFrame {
                     addedTime = true;
                     if (isWork) {
                         pauseTimer();
+
                     } else {
                         resetTimer();
                     }
@@ -209,6 +210,16 @@ public class Main extends JFrame {
         ajouterTemps.setEnabled(false);
         Arreter.setEnabled(false);
         isWork = false;
+        try {
+            String[] commandcmd = {"cmd.exe", "/C", "Start", "src\\main\\resources\\script\\pauseScript.bat"};
+            Process p =  Runtime.getRuntime().exec(commandcmd);
+        } catch (IOException ex) {
+        }
+        try {
+            String[] commandproxy = {"cmd.exe", "/C", "Start", "src\\main\\resources\\script\\pauseProxy.bat"};
+            Process p =  Runtime.getRuntime().exec(commandproxy);
+        } catch (IOException ex) {
+        }
     }
 
     public void displayNotif(String texte) throws AWTException {
@@ -276,8 +287,13 @@ public class Main extends JFrame {
                 timer.start();
                 Commencer.setEnabled(false);
                 try {
-                    String[] commandcmd = {"cmd.exe", "/C", "Start", "src\\main\\resources\\commandbreakblock.bat"};
+                    String[] commandcmd = {"cmd.exe", "/C", "Start", "src\\main\\resources\\script\\workScript.bat"};
                     Process p =  Runtime.getRuntime().exec(commandcmd);
+                } catch (IOException ex) {
+                }
+                try {
+                    String[] commandproxy = {"cmd.exe", "/C", "Start", "src\\main\\resources\\script\\workProxy.bat"};
+                    Process p =  Runtime.getRuntime().exec(commandproxy);
                 } catch (IOException ex) {
                 }
             }
