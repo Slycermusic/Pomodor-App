@@ -307,11 +307,8 @@ public class Main extends JFrame {
                 }
                 RegisterTask();
             }
-            if (e.getActionCommand().equals("Retirer Tâche")) {
-                if (currentCheckbox.isSelected()) {
-                    RemoveTask();
-                }
-
+            if (e.getActionCommand().equals("\uD83D\uDDD1")) {
+                RemoveTask();
             }
             if (e.getActionCommand().equals("Ajouter deux minutes") && !addedTime) {
                     minute += 2;
@@ -336,6 +333,7 @@ public class Main extends JFrame {
             this.add(currentCheckbox);
             currentCheckbox.setBounds(1000, y,200,20);
             currentCheckbox.setBackground(Color.black);
+            currentCheckbox.setHorizontalTextPosition(SwingConstants.LEADING);
             currentCheckbox.setOpaque(false);
             taskList.setText("");
             y += 50;
@@ -347,10 +345,30 @@ public class Main extends JFrame {
     }
 
     public void RemoveTask() {
-        if(currentCheckbox.isSelected()) {
-            this.remove(currentCheckbox);
-        }
+        var retractCheck = 0;
+        var xCheck = 0;
+        var yCheck = 0;
+        var wCheck = 0;
+        var hCheck = 0;
+        var checkASupp = new ArrayList<JCheckBox>();
+        for (JCheckBox checkbox : listcheckBox) {
+            if(checkbox.isSelected()){
+                checkbox.setVisible(false);
+                listTask.remove(checkbox.getText());
+                checkASupp.add(checkbox);
 
+                retractCheck += 50;
+            }
+            xCheck = checkbox.getX();
+            yCheck = checkbox.getY();
+            wCheck = checkbox.getWidth();
+            hCheck = checkbox.getHeight();
+            checkbox.setBounds(xCheck,yCheck - retractCheck,wCheck,hCheck);
+        }
+        for (JCheckBox supp: checkASupp) {
+            listcheckBox.remove(supp);
+        }
+        y -= retractCheck;
     }
 
     public void dispose() {
