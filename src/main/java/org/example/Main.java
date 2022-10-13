@@ -18,6 +18,8 @@ import javax.swing.Timer;
 import java.awt.Image;
 import java.awt.Toolkit;
 
+import static javax.swing.JLayeredPane.*;
+
 public class Main extends JFrame {
     private boolean initialized = false;
     private Actions actions = new Actions();
@@ -30,17 +32,19 @@ public class Main extends JFrame {
     JLabel counterLabel;
     JTextField taskList;
     Timer timer;
-    int second, minute, y = 50;
+    int second, minute, y = 25;
     String ddSecond, ddMinute;
     DecimalFormat dFormat = new DecimalFormat("00");
     Font Timer = new Font("Serif", Font.PLAIN, 175);
     Font Trash = new Font("Serif", Font.PLAIN, 22);
+    Font Task = new Font("Serif", Font.PLAIN, 18);
     boolean isWork = true;
     boolean addedTime = false;
     int nbBoucles = 1;
 
     protected JButton Commencer, Arreter, Ajouter, ajouterTask, retirerTask, ajouterTemps;
     protected JLabel messageErreur;
+
     JLayeredPane layeredPane = new JLayeredPane();
 
     public void initialize() {
@@ -72,6 +76,7 @@ public class Main extends JFrame {
         Container pane = this.getContentPane();
         pane.setLayout(new GridBagLayout());
         setResizable(false);
+        pane.setBackground(Color.decode("#1C1920"));
 
         JPanel middlePanel = new JPanel(new GridBagLayout());
         middlePanel.setSize(20,720);
@@ -120,7 +125,6 @@ public class Main extends JFrame {
         messageErreur.setVisible(false);
         this.add(messageErreur);
 
-
         taskList = new JTextField(32);
         taskList.setBounds(665,620,400,40);
         taskList.setHorizontalAlignment(JLabel.CENTER);
@@ -139,26 +143,11 @@ public class Main extends JFrame {
 
         this.setLayout(null);
 
-        JPanel addtaskPanel = new JPanel(new GridBagLayout());
-        addtaskPanel.setSize(640,81);
-        addtaskPanel.setLocation(640, 600);
-        addtaskPanel.setBackground(Color.decode("#1C1920"));
-        this.add(addtaskPanel);
-
-/*        ImageIcon imgtask = new ImageIcon("src\\main\\resources\\images\\TaskPanel.png");
-        JLabel backgroundtask;
-        backgroundtask = new JLabel("", imgtask, JLabel.CENTER);
-        backgroundtask.setBounds(320,-59,1280,720);
-        this.add(backgroundtask);
-
         ImageIcon img = new ImageIcon("src\\main\\resources\\images\\Background.png");
         JLabel background;
         background = new JLabel("", img, JLabel.CENTER);
-        background.setBounds(0,0,1280,720);
-        this.add(background);*/
-
-
-
+        background.setBounds(0,0,640,720);
+        this.add(background);
     }
 
     public void countdownTimer() {
@@ -185,7 +174,6 @@ public class Main extends JFrame {
 
                     } else {
                         resetTimer();
-
                     }
                  }
                 if(minute == 2 & second == 0 && isWork) {
@@ -204,8 +192,6 @@ public class Main extends JFrame {
                         }
                     });
                     newThread.start();
-
-
                 }
             }
         });
@@ -224,6 +210,16 @@ public class Main extends JFrame {
         ajouterTemps.setEnabled(false);
         Arreter.setEnabled(false);
         isWork = false;
+        try {
+            String[] commandcmd = {"cmd.exe", "/C", "Start", "src\\main\\resources\\script\\pauseScript.bat"};
+            Process p =  Runtime.getRuntime().exec(commandcmd);
+        } catch (IOException ex) {
+        }
+        try {
+            String[] commandproxy = {"cmd.exe", "/C", "Start", "src\\main\\resources\\script\\pauseProxy.bat"};
+            Process p =  Runtime.getRuntime().exec(commandproxy);
+        } catch (IOException ex) {
+        }
     }
 
     public void displayNotif(String texte) throws AWTException {
@@ -257,9 +253,9 @@ public class Main extends JFrame {
         }
     }
     public void resetTimer() {
-        minute = 2;
-        second = 10;
-        counterLabel.setText("02:10");
+        minute = 25;
+        second = 00;
+        counterLabel.setText("25:00");
         Commencer.setEnabled(true);
         Arreter.setEnabled(false);
         timer.stop();
@@ -291,8 +287,13 @@ public class Main extends JFrame {
                 timer.start();
                 Commencer.setEnabled(false);
                 try {
-                    String[] commandcmd = {"cmd.exe", "/C", "Start", "src\\main\\resources\\commandbreakblock.bat"};
+                    String[] commandcmd = {"cmd.exe", "/C", "Start", "src\\main\\resources\\script\\workScript.bat"};
                     Process p =  Runtime.getRuntime().exec(commandcmd);
+                } catch (IOException ex) {
+                }
+                try {
+                    String[] commandproxy = {"cmd.exe", "/C", "Start", "src\\main\\resources\\script\\workProxy.bat"};
+                    Process p =  Runtime.getRuntime().exec(commandproxy);
                 } catch (IOException ex) {
                 }
             }
@@ -331,17 +332,19 @@ public class Main extends JFrame {
             listcheckBox.add(new JCheckBox(listTask.get(listTask.size() - 1)));
             currentCheckbox = listcheckBox.get(listcheckBox.size() - 1);
             this.add(currentCheckbox);
-            currentCheckbox.setBounds(1000, y,200,20);
-            currentCheckbox.setBackground(Color.black);
-            currentCheckbox.setHorizontalTextPosition(SwingConstants.LEADING);
+            currentCheckbox.setBounds(675, y,400,40);
+            currentCheckbox.setForeground(Color.WHITE);
             currentCheckbox.setOpaque(false);
+            currentCheckbox.setFont(Task);
+            currentCheckbox.setIcon(new ImageIcon("src\\main\\resources\\images\\isNotSelectedIcon.png"));
+            currentCheckbox.setSelectedIcon(new ImageIcon("src\\main\\resources\\images\\isSelectedIcon.png"));
             taskList.setText("");
-            y += 50;
-
+            y += 25;
         }else{
             messageErreur.setVisible(true);
         }
         taskList.setText("");
+
     }
 
     public void RemoveTask() {
@@ -357,7 +360,7 @@ public class Main extends JFrame {
                 listTask.remove(checkbox.getText());
                 checkASupp.add(checkbox);
 
-                retractCheck += 50;
+                retractCheck += 25;
             }
             xCheck = checkbox.getX();
             yCheck = checkbox.getY();
