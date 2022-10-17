@@ -59,6 +59,11 @@ public class Main extends JFrame {
                 int PromptResult = JOptionPane.showOptionDialog(null,"Attention, fermer l'application n'enregistrera pas le chronomètre. Voulez vous toujours fermer l'application ?","Pomorod'App",JOptionPane.DEFAULT_OPTION,JOptionPane.WARNING_MESSAGE,null,ObjButtons,ObjButtons[1]);
                 if(PromptResult==JOptionPane.YES_OPTION)
                 {
+                    try {
+                        String[] commandcmd = {"cmd.exe", "/C", "Start", "src\\main\\resources\\script\\deblockScript.bat"};
+                        Process p =  Runtime.getRuntime().exec(commandcmd);
+                    } catch (IOException ex) {
+                    }
                     System.exit(0);
                 }
             }
@@ -137,7 +142,7 @@ public class Main extends JFrame {
         counterLabel.setFont(Timer);
         this.add(counterLabel);
 
-        counterLabel.setText("25:00");
+        counterLabel.setText("02:10");
         second = 10;
         minute = 2;
 
@@ -170,6 +175,7 @@ public class Main extends JFrame {
                 if(minute==0 && second==0) {
                     addedTime = true;
                     if (isWork) {
+
                         pauseTimer();
 
                     } else {
@@ -184,7 +190,7 @@ public class Main extends JFrame {
 
                     Thread newThread = new Thread(() -> {
                         try {
-                            playSound();
+                            //playSound();
                             Thread.sleep(200);
                             displayNotif(addedTime ? "Deux minutes restantes" : "Deux minutes restantes, Clickez pour ajouter deux minutes");
                         } catch (InterruptedException | AWTException f) {
@@ -199,26 +205,27 @@ public class Main extends JFrame {
 
     public void pauseTimer() {
         if(nbBoucles % 4 == 0){
-            minute = 2;
-            second = 30;
+            minute = 30;
+            second = 0;
             counterLabel.setText("30:00");
         }else{
-            minute = 2;
+            minute = 0;
             second = 10;
-            counterLabel.setText("05:00");
+            counterLabel.setText("00:10");
         }
         ajouterTemps.setEnabled(false);
         Arreter.setEnabled(false);
         isWork = false;
+        addedTime = true;
         try {
             String[] commandcmd = {"cmd.exe", "/C", "Start", "src\\main\\resources\\script\\pauseScript.bat"};
             Process p =  Runtime.getRuntime().exec(commandcmd);
         } catch (IOException ex) {
         }
         try {
-            String[] commandproxy = {"cmd.exe", "/C", "Start", "src\\main\\resources\\script\\pauseProxy.bat"};
-            Process p =  Runtime.getRuntime().exec(commandproxy);
-        } catch (IOException ex) {
+            displayNotif( "Le temps de travail est maintenant terminé, prenez une pause pour vous détendre");
+        } catch (AWTException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -253,9 +260,9 @@ public class Main extends JFrame {
         }
     }
     public void resetTimer() {
-        minute = 25;
-        second = 00;
-        counterLabel.setText("25:00");
+        minute = 2;
+        second = 10;
+        counterLabel.setText("02:10");
         Commencer.setEnabled(true);
         Arreter.setEnabled(false);
         timer.stop();
@@ -263,7 +270,7 @@ public class Main extends JFrame {
         addedTime = false;
         Thread newThread = new Thread(() -> {
             try {
-                playSound();
+                //playSound();
                 Thread.sleep(200);
                 displayNotif("Fin du Pomodoro n°" + nbBoucles + ". Vous pouvez relancer le suivant après avoir ajouté vos nouvelles tâches.");
                 nbBoucles++;
@@ -271,6 +278,11 @@ public class Main extends JFrame {
                 throw new RuntimeException(f);
             }
         });
+        try {
+            String[] commandcmd = {"cmd.exe", "/C", "Start", "src\\main\\resources\\script\\deblockScript.bat"};
+            Process p =  Runtime.getRuntime().exec(commandcmd);
+        } catch (IOException ex) {
+        }
         newThread.start();
     }
 
@@ -289,11 +301,6 @@ public class Main extends JFrame {
                 try {
                     String[] commandcmd = {"cmd.exe", "/C", "Start", "src\\main\\resources\\script\\workScript.bat"};
                     Process p =  Runtime.getRuntime().exec(commandcmd);
-                } catch (IOException ex) {
-                }
-                try {
-                    String[] commandproxy = {"cmd.exe", "/C", "Start", "src\\main\\resources\\script\\workProxy.bat"};
-                    Process p =  Runtime.getRuntime().exec(commandproxy);
                 } catch (IOException ex) {
                 }
             }
@@ -387,7 +394,7 @@ public class Main extends JFrame {
 
     public static void playSound() throws InterruptedException {
         try {
-            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File("src\\main\\resources\\audio\\Notif.wav").getAbsoluteFile());
+            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File("src\\main\\resources\\audio\\NotificationSound.wav").getAbsoluteFile());
             Clip clip = AudioSystem.getClip();
             clip.open(audioInputStream);
             clip.start();
